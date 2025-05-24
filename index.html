@@ -1,96 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Business Card - Dr. Okuvatoyin Fikirlade</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
-      body {
-        font-family: "Arial", sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        margin: 0;
-        perspective: 1000px;
-      }
-
-      .card-container {
-        width: 350px;
-        height: 200px;
-        position: relative;
-        transform-style: preserve-3d;
-        transition: transform 1s;
-      }
-
-      .card-container:hover {
-        transform: rotateY(180deg);
-      }
-
-      .card {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        backface-visibility: hidden;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        overflow: hidden;
-      }
-
-      .card-front {
-        background: white;
-        transform: rotateY(0deg);
-      }
-
-      .card-back {
-        background: white;
-        transform: rotateY(180deg);
-      }
-
-      .card-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .qr-overlay {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        background: white;
-        padding: 5px;
-        border-radius: 5px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      .clickable-area {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        z-index: 10;
-      }
+        :root {
+            --card-width: min(90vw, 600px);
+            --card-height: calc(var(--card-width) * 0.57); /* Standard business card ratio */
+            --qr-size: calc(var(--card-width) * 0.2);
+        }
+        
+        body {
+            font-family: "Arial", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            perspective: 1000px;
+        }
+        
+        .card-container {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+            cursor: pointer;
+        }
+        
+        .card-container.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .card-front {
+            background: white;
+            transform: rotateY(0deg);
+        }
+        
+        .card-back {
+            background: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .qr-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: var(--qr-size);
+            height: var(--qr-size);
+        }
+        
+        .clickable-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .tap-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(0,0,0,0.6);
+            font-size: 14px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .tap-hint {
+                display: block;
+            }
+        }
     </style>
-  </head>
-  <body>
-    <div class="card-container">
-      <div class="card card-front">
-        <img src="front.png" alt="Business Card Front" class="card-image" />
-        <div class="clickable-area"></div>
-      </div>
-
-      <div class="card card-back">
-        <img src="back.png" alt="Business Card Back" class="card-image" />
-        <div class="qr-overlay" id="qrcode"></div>
-      </div>
+</head>
+<body>
+    <div class="card-container" id="cardContainer">
+        <div class="card card-front">
+            <img src="front.png" alt="Business Card Front" class="card-image">
+            <div class="clickable-area" id="clickableArea"></div>
+            <div class="tap-hint">Tap to flip card</div>
+        </div>
+        
+        <div class="card card-back">
+            <img src="back.png" alt="Business Card Back" class="card-image">
+            <div class="qr-overlay" id="qrcode"></div>
+            <div class="tap-hint">Tap to flip card</div>
+        </div>
     </div>
 
     <script>
-      // Generate QR code with contact information
-      const qrText = `BEGIN:VCARD
+        // Generate QR code with contact information
+        const qrText = `BEGIN:VCARD
 VERSION:3.0
 N:Fikirlade;Okuvatoyin
 FN:Okuvatoyin Fikirlade Ph.D, FCIPM
@@ -102,28 +131,54 @@ URL:www.oluwatoyin.akinhade.com
 ADR:FAAN Training School, Head Quarters, Ikeja, Lagos
 END:VCARD`;
 
-      QRCode.toCanvas(
-        document.getElementById("qrcode"),
-        qrText,
-        {
-          width: 80,
-          margin: 1,
-          color: {
-            dark: "#000000",
-            light: "#ffffff",
-          },
-        },
-        function (error) {
-          if (error) console.error(error);
-        }
-      );
+        QRCode.toCanvas(
+            document.getElementById("qrcode"),
+            qrText,
+            {
+                width: document.getElementById('qrcode').offsetWidth,
+                margin: 1,
+                color: {
+                    dark: "#000000",
+                    light: "#ffffff",
+                },
+            },
+            function (error) {
+                if (error) console.error(error);
+            }
+        );
 
-      // Make phone numbers clickable (for the front image)
-      document
-        .querySelector(".clickable-area")
-        .addEventListener("click", function () {
-          window.location.href = "tel:+2348023227343";
+        // Make phone numbers clickable (for the front image)
+        document.getElementById("clickableArea").addEventListener("click", function (e) {
+            e.stopPropagation();
+            window.location.href = "tel:+2348023227343";
         });
+
+        // Toggle flip on click/tap
+        document.getElementById("cardContainer").addEventListener("click", function() {
+            this.classList.toggle('flipped');
+        });
+        
+        // Handle window resize
+        function resizeQR() {
+            const qrElement = document.getElementById('qrcode');
+            if (qrElement.children.length > 0) {
+                qrElement.innerHTML = '';
+                QRCode.toCanvas(
+                    qrElement,
+                    qrText,
+                    {
+                        width: qrElement.offsetWidth,
+                        margin: 1,
+                        color: {
+                            dark: "#000000",
+                            light: "#ffffff",
+                        },
+                    }
+                );
+            }
+        }
+        
+        window.addEventListener('resize', resizeQR);
     </script>
-  </body>
+</body>
 </html>
