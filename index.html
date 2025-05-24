@@ -1,120 +1,121 @@
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Business Card - Dr. Okuvatoyin Fikirlade</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
-        body {
-            font-family: "Arial", sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            margin: 0;
-            padding: 20px;
-            perspective: 1000px;
-        }
+      body {
+        font-family: "Arial", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        margin: 0;
+        padding: 20px;
+        perspective: 1000px;
+      }
 
+      .card-container {
+        width: 90vw;
+        height: calc(90vw * 0.57); /* Standard business card ratio */
+        max-width: 500px;
+        max-height: 285px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s;
+        cursor: pointer;
+      }
+
+      .card-container.flipped {
+        transform: rotateY(180deg);
+      }
+
+      .card {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .card-front {
+        background: white;
+        transform: rotateY(0deg);
+      }
+
+      .card-back {
+        background: white;
+        transform: rotateY(180deg);
+      }
+
+      .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .qr-overlay {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 5px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 20%;
+        max-width: 100px;
+      }
+
+      .tap-hint {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: rgba(0, 0, 0, 0.7);
+        font-size: 10px;
+        pointer-events: none;
+      }
+
+      @media (min-width: 768px) {
         .card-container {
-            width: 90vw;
-            height: calc(90vw * 0.57); /* Standard business card ratio */
-            max-width: 500px;
-            max-height: 285px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.8s;
-            cursor: pointer;
+          width: 500px;
+          height: 285px;
         }
 
-        .card-container.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-
-        .card-front {
-            background: white;
-            transform: rotateY(0deg);
-        }
-
-        .card-back {
-            background: white;
-            transform: rotateY(180deg);
-        }
-
-        .card-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .qr-overlay {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 5px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 20%;
-            max-width: 100px;
+        .card-container:hover {
+          transform: rotateY(180deg);
         }
 
         .tap-hint {
-            position: absolute;
-            bottom: 15px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: rgba(0, 0, 0, 0.7);
-            font-size: 14px;
-            pointer-events: none;
+          display: none;
         }
-
-        @media (min-width: 768px) {
-            .card-container {
-                width: 500px;
-                height: 285px;
-            }
-            
-            .card-container:hover {
-                transform: rotateY(180deg);
-            }
-            
-            .tap-hint {
-                display: none;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="card-container" id="cardContainer">
-        <div class="card card-front">
-            <img src="front.png" alt="Business Card Front" class="card-image">
-            <div class="tap-hint">Tap to flip or double tap to call</div>
-        </div>
+      <div class="card card-front">
+        <img src="front.png" alt="Business Card Front" class="card-image" />
+        <div class="tap-hint">Tap to flip or double tap to call</div>
+      </div>
 
-        <div class="card card-back">
-            <img src="back.png" alt="Business Card Back" class="card-image">
-            <div class="qr-overlay" id="qrcode"></div>
-            <div class="tap-hint">Tap to flip back</div>
-        </div>
+      <div class="card card-back">
+        <img src="back.png" alt="Business Card Back" class="card-image" />
+        <div id="qrcode"></div>
+        <div class="tap-hint">Tap to flip back</div>
+      </div>
     </div>
 
     <script>
-        // Generate QR code with contact information
-        const qrText = `BEGIN:VCARD
+      // Generate QR code with contact information
+      const qrText = `BEGIN:VCARD
 VERSION:3.0
 N:Fikirlade;Okuvatoyin
 FN:Okuvatoyin Fikirlade Ph.D, FCIPM
@@ -126,63 +127,67 @@ URL:www.oluwatoyin.akinhade.com
 ADR:FAAN Training School, Head Quarters, Ikeja, Lagos
 END:VCARD`;
 
-        QRCode.toCanvas(
-            document.getElementById("qrcode"),
-            qrText,
-            {
-                width: document.getElementById('qrcode').offsetWidth,
-                margin: 1,
-                color: {
-                    dark: "#000000",
-                    light: "#ffffff",
-                },
-            },
-            function (error) {
-                if (error) console.error(error);
-            }
-        );
+      QRCode.toCanvas(
+        document.getElementById("qrcode"),
+        qrText,
+        {
+          width: document.getElementById("qrcode").offsetWidth,
+          margin: 1,
+          color: {
+            dark: "#000000",
+            light: "#ffffff",
+          },
+        },
+        function (error) {
+          if (error) console.error(error);
+        }
+      );
 
-        // Touch and click handling
-        const cardContainer = document.getElementById('cardContainer');
-        let lastTapTime = 0;
-        let tapCount = 0;
-        let tapTimeout;
+      // Touch and click handling
+      const cardContainer = document.getElementById("cardContainer");
+      let lastTapTime = 0;
+      let tapCount = 0;
+      let tapTimeout;
 
-        cardContainer.addEventListener('click', function(e) {
-            // For desktop browsers
-            if (window.matchMedia("(min-width: 768px)").matches) {
-                return; // Let hover handle it on desktop
-            }
-            
-            // For mobile devices
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTapTime;
-            
-            tapCount++;
-            
+      cardContainer.addEventListener("click", function (e) {
+        // For desktop browsers
+        if (window.matchMedia("(min-width: 768px)").matches) {
+          return; // Let hover handle it on desktop
+        }
+
+        // For mobile devices
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTapTime;
+
+        tapCount++;
+
+        if (tapCount === 1) {
+          // First tap - wait to see if second comes
+          tapTimeout = setTimeout(() => {
             if (tapCount === 1) {
-                // First tap - wait to see if second comes
-                tapTimeout = setTimeout(() => {
-                    if (tapCount === 1) {
-                        // Single tap - flip the card
-                        this.classList.toggle('flipped');
-                    }
-                    tapCount = 0;
-                }, 300);
-            } else if (tapCount === 2 && tapLength < 300) {
-                // Double tap - make call
-                clearTimeout(tapTimeout);
-                window.location.href = "tel:+2348023227343";
-                tapCount = 0;
+              // Single tap - flip the card
+              this.classList.toggle("flipped");
             }
-            
-            lastTapTime = currentTime;
-        });
+            tapCount = 0;
+          }, 300);
+        } else if (tapCount === 2 && tapLength < 300) {
+          // Double tap - make call
+          clearTimeout(tapTimeout);
+          window.location.href = "tel:+2348023227343";
+          tapCount = 0;
+        }
 
-        // Prevent zooming on double-tap
-        document.addEventListener('dblclick', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        lastTapTime = currentTime;
+      });
+
+      // Prevent zooming on double-tap
+      document.addEventListener(
+        "dblclick",
+        function (e) {
+          e.preventDefault();
+        },
+        { passive: false }
+      );
     </script>
-</body>
+  </body>
 </html>
